@@ -56,7 +56,7 @@ class BehaviorSpec extends TypedSpec {
 
     protected def mkCtx(requirePreStart: Boolean = false, factory: (ActorRef[Event]) ⇒ Behavior[Command] = behavior) = {
       val inbox = Inbox[Event]("evt")
-      val ctx = new EffectfulActorContext("ctx", Props(factory(inbox.ref)), system)
+      val ctx = new EffectfulActorContext("ctx", factory(inbox.ref), 1000, system)
       val msgs = inbox.receiveAll()
       if (requirePreStart)
         msgs should ===(GotSignal(PreStart) :: Nil)
@@ -117,14 +117,6 @@ class BehaviorSpec extends TypedSpec {
 
     def `must react to PreRestart after a message`(): Unit = {
       mkCtx().check(GetSelf).check(PreRestart)
-    }
-
-    def `must react to PostRestart`(): Unit = {
-      mkCtx().check(PostRestart)
-    }
-
-    def `must react to a message after PostRestart`(): Unit = {
-      mkCtx().check(PostRestart).check(GetSelf)
     }
 
     def `must react to Terminated`(): Unit = {
@@ -201,10 +193,6 @@ class BehaviorSpec extends TypedSpec {
 
     def `must react to PreRestart after a message after swap`(): Unit = {
       mkCtx().check(Swap).check(GetSelf).check(PreRestart)
-    }
-
-    def `must react to a message after PostRestart after swap`(): Unit = {
-      mkCtx().check(PostRestart).check(Swap).check(GetSelf)
     }
 
     def `must react to Terminated after swap`(): Unit = {
